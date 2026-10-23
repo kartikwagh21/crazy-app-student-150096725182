@@ -1,0 +1,900 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#05090a">
+
+    <title>Neon Terminal // Matrix Lab</title>
+
+    <style>
+        :root {
+            --bg: #05090a;
+            --panel: rgba(7, 17, 17, 0.82);
+            --line: rgba(75, 255, 169, 0.16);
+            --green: #4bffa9;
+            --lime: #c7ff4b;
+            --cyan: #4beaff;
+            --pink: #ff5ec4;
+            --text: #d9fff0;
+            --muted: #6c9b88;
+            --shadow: 0 0 34px rgba(75, 255, 169, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: ui-monospace, SFMono-Regular, Menlo,
+                Monaco, Consolas, monospace;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        #rain {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.21;
+            pointer-events: none;
+        }
+
+        .noise {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: radial-gradient(#fff 1px, transparent 1px);
+            background-size: 4px 4px;
+            mix-blend-mode: screen;
+        }
+
+        .shell {
+            position: relative;
+            z-index: 2;
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 24px 0 42px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 16px 20px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: rgba(7, 18, 16, 0.74);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .mark {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--green);
+            border-radius: 12px;
+            color: var(--green);
+            box-shadow: 0 0 18px rgba(75, 255, 169, 0.35);
+            font-weight: 800;
+        }
+
+        .eyebrow {
+            margin: 0 0 4px;
+            color: var(--green);
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: clamp(13px, 2vw, 18px);
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 12px var(--green);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            50% {
+                opacity: 0.35;
+                transform: scale(0.7);
+            }
+        }
+
+        .hero {
+            padding: 62px 6px 34px;
+            max-width: 800px;
+        }
+
+        .hero h2 {
+            margin: 0;
+            font: 800 clamp(40px, 8vw, 88px) / 0.92 ui-monospace, monospace;
+            letter-spacing: -0.08em;
+            text-shadow: 0 0 30px rgba(75, 255, 169, 0.24);
+        }
+
+        .hero h2 span {
+            color: var(--green);
+        }
+
+        .hero p {
+            color: var(--muted);
+            max-width: 620px;
+            line-height: 1.7;
+            margin: 22px 0 0;
+            font-size: 14px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 26px;
+            padding: 9px 12px;
+            border: 1px solid rgba(75, 234, 255, 0.25);
+            border-radius: 999px;
+            color: var(--cyan);
+            font-size: 11px;
+            background: rgba(75, 234, 255, 0.05);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 16px;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            overflow: hidden;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-head h3 {
+            margin: 0;
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--green);
+        }
+
+        .panel-head span {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .console {
+            height: 300px;
+            padding: 16px 18px;
+            overflow: auto;
+            font-size: 12px;
+            line-height: 1.8;
+            color: #a4eec9;
+        }
+
+        .console::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .console::-webkit-scrollbar-thumb {
+            background: var(--line);
+            border-radius: 10px;
+        }
+
+        .line {
+            animation: appear 0.25s ease both;
+        }
+
+        .line .time {
+            color: #507a68;
+        }
+
+        .line .good {
+            color: var(--green);
+        }
+
+        .line .warn {
+            color: var(--lime);
+        }
+
+        .line .cyan {
+            color: var(--cyan);
+        }
+
+        .line .pink {
+            color: var(--pink);
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .tools {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            border: 1px solid rgba(75, 255, 169, 0.24);
+            background: rgba(75, 255, 169, 0.06);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 13px 12px;
+            font: inherit;
+            font-size: 11px;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.18s ease,
+                background 0.18s ease,
+                border-color 0.18s ease,
+                box-shadow 0.18s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            border-color: var(--green);
+            background: rgba(75, 255, 169, 0.12);
+            box-shadow: 0 0 18px rgba(75, 255, 169, 0.15);
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        button strong {
+            display: block;
+            color: var(--green);
+            margin-bottom: 5px;
+        }
+
+        button small {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 0 16px 16px;
+        }
+
+        .metric {
+            padding: 14px;
+            border: 1px solid rgba(75, 255, 169, 0.12);
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.16);
+        }
+
+        .metric b {
+            display: block;
+            color: var(--lime);
+            font-size: 19px;
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 9px;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .progress-wrap {
+            padding: 18px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 10px;
+            margin-bottom: 8px;
+        }
+
+        .bar {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 99px;
+            background: #0c201b;
+            border: 1px solid rgba(75, 255, 169, 0.1);
+        }
+
+        .fill {
+            height: 100%;
+            width: 64%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--green), var(--cyan));
+            box-shadow: 0 0 14px var(--green);
+            transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .cipher {
+            margin-top: 16px;
+        }
+
+        .cipher-body {
+            padding: 18px;
+        }
+
+        .cipher p {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+            margin: 0 0 14px;
+        }
+
+        .cipher-code {
+            display: block;
+            padding: 16px;
+            color: var(--pink);
+            border: 1px dashed rgba(255, 94, 196, 0.45);
+            background: rgba(255, 94, 196, 0.06);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 20px;
+            letter-spacing: 0.2em;
+            margin-bottom: 12px;
+        }
+
+        .cipher-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        input {
+            width: 100%;
+            min-width: 0;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #071311;
+            color: var(--text);
+            padding: 12px;
+            font: inherit;
+            font-size: 12px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 3px rgba(75, 234, 255, 0.1);
+        }
+
+        .cipher-row button {
+            text-align: center;
+            color: var(--bg);
+            background: var(--green);
+            border-color: var(--green);
+            font-weight: 800;
+            min-width: 98px;
+        }
+
+        #toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            z-index: 5;
+            transform: translate(-50%, 120px);
+            padding: 12px 16px;
+            border: 1px solid var(--green);
+            border-radius: 12px;
+            background: #071b14;
+            color: var(--green);
+            font-size: 11px;
+            box-shadow: 0 0 24px rgba(75, 255, 169, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        #toast.show {
+            transform: translate(-50%, 0);
+        }
+
+        footer {
+            padding: 22px 4px 0;
+            color: #416755;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        @media (max-width: 780px) {
+            header {
+                align-items: flex-start;
+            }
+
+            .status {
+                display: none;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                padding-top: 44px;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .shell {
+                width: min(calc(100% - 20px), 1180px);
+            }
+
+            .tools {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .cipher-row {
+                flex-direction: column;
+            }
+
+            .cipher-row button {
+                width: 100%;
+            }
+
+            footer {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="rain" aria-hidden="true"></canvas>
+    <div class="noise" aria-hidden="true"></div>
+
+    <main class="shell">
+        <header>
+            <div class="brand">
+                <div class="mark">▣</div>
+
+                <div>
+                    <p class="eyebrow">Secure interface / 07</p>
+                    <h1>Created by Student 150096725182</h1>
+                </div>
+            </div>
+
+            <div class="status">
+                <i class="dot"></i>
+                SYSTEM ONLINE
+            </div>
+        </header>
+
+        <section class="hero">
+            <p class="eyebrow">// welcome to the matrix lab</p>
+
+            <h2>Break the <span>pattern.</span></h2>
+
+            <p>
+                A cinematic terminal playground for curious minds.
+                Run simulated tools, watch the signal move, and decode
+                the hidden message before the system resets.
+            </p>
+
+            <div class="tag">
+                ⌁ NO REAL SYSTEMS ARE TOUCHED
+                &nbsp;·&nbsp;
+                SIMULATION MODE
+            </div>
+        </section>
+
+        <section class="grid">
+            <article class="panel">
+                <div class="panel-head">
+                    <h3>Live terminal</h3>
+                    <span id="clock">00:00:00</span>
+                </div>
+
+                <div
+                    class="console"
+                    id="console"
+                    role="log"
+                    aria-live="polite"
+                ></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-head">
+                    <h3>Fake hack tools</h3>
+                    <span>select an operation</span>
+                </div>
+
+                <div class="tools">
+                    <button data-tool="scan">
+                        <strong>01 / Scan subnet</strong>
+                        <small>Map fictional nodes</small>
+                    </button>
+
+                    <button data-tool="decrypt">
+                        <strong>02 / Decrypt packet</strong>
+                        <small>Crack a mock payload</small>
+                    </button>
+
+                    <button data-tool="trace">
+                        <strong>03 / Trace signal</strong>
+                        <small>Follow the neon route</small>
+                    </button>
+
+                    <button data-tool="firewall">
+                        <strong>04 / Tune firewall</strong>
+                        <small>Raise defense level</small>
+                    </button>
+                </div>
+
+                <div class="metrics">
+                    <div class="metric">
+                        <b id="nodes">08</b>
+                        <span>nodes found</span>
+                    </div>
+
+                    <div class="metric">
+                        <b id="packets">1.4k</b>
+                        <span>packets/sec</span>
+                    </div>
+
+                    <div class="metric">
+                        <b id="threat">LOW</b>
+                        <span>threat level</span>
+                    </div>
+                </div>
+
+                <div class="progress-wrap">
+                    <div class="progress-label">
+                        <span>system integrity</span>
+                        <span id="integrityText">64%</span>
+                    </div>
+
+                    <div class="bar">
+                        <div class="fill" id="integrity"></div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <article class="panel cipher">
+            <div class="panel-head">
+                <h3>Hidden cipher // mini-game</h3>
+                <span>level 01</span>
+            </div>
+
+            <div class="cipher-body">
+                <p>
+                    One message is concealed in plain sight.
+                    Shift each letter back by three places to reveal
+                    the access phrase.
+                </p>
+
+                <code class="cipher-code">FUBH &nbsp; WKH &nbsp; QHRQ</code>
+
+                <div class="cipher-row">
+                    <input
+                        id="answer"
+                        aria-label="Cipher answer"
+                        placeholder="type the decoded phrase…"
+                        autocomplete="off"
+                    >
+
+                    <button id="check">VERIFY</button>
+                </div>
+            </div>
+        </article>
+
+        <footer>
+            <span>SESSION ID: 150096725182-X</span>
+            <span>all activity is fictional // stay curious</span>
+        </footer>
+    </main>
+
+    <div id="toast" role="status"></div>
+
+    <script>
+        // Matrix-style falling characters
+        const canvas = document.getElementById("rain");
+        const ctx = canvas.getContext("2d");
+
+        let drops = [];
+
+        const chars = "01アイウエオ{}[]<>/\\#$%+=*";
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            drops = Array.from(
+                { length: Math.ceil(window.innerWidth / 15) },
+                () => Math.random() * -60
+            );
+        }
+
+        function rain() {
+            ctx.fillStyle = "rgba(5,9,10,.12)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#42f59b";
+            ctx.font = "14px monospace";
+
+            drops.forEach((y, i) => {
+                ctx.fillText(
+                    chars[Math.floor(Math.random() * chars.length)],
+                    i * 15,
+                    y * 15
+                );
+
+                drops[i] =
+                    y * 15 > canvas.height && Math.random() > 0.975
+                        ? 0
+                        : y + 1;
+            });
+
+            requestAnimationFrame(rain);
+        }
+
+        window.addEventListener("resize", resize);
+
+        resize();
+        rain();
+
+        // Terminal setup
+        const consoleEl = document.getElementById("console");
+        const toast = document.getElementById("toast");
+
+        let integrity = 64;
+
+        const messages = [
+            ["good", "handshake accepted — simulation channel open"],
+            ["cyan", "routing through node 07..."],
+            ["", "entropy stream stabilized"],
+            ["warn", "anomaly detected in sector 3"],
+            ["good", "sandbox boundary confirmed"],
+            ["pink", "cipher fragment recovered: 3 / 3"]
+        ];
+
+        function log(text, type = "") {
+            const div = document.createElement("div");
+            div.className = "line";
+
+            const time = document.createElement("span");
+            time.className = "time";
+            time.textContent = "[" + new Date().toLocaleTimeString() + "] ";
+
+            const message = document.createElement("span");
+            message.className = type;
+            message.textContent = text;
+
+            div.append(time, message);
+
+            consoleEl.appendChild(div);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        messages.forEach((message, index) => {
+            setTimeout(() => {
+                log(message[1], message[0]);
+            }, index * 330);
+        });
+
+        setInterval(() => {
+            const message =
+                messages[Math.floor(Math.random() * messages.length)];
+
+            log(message[1], message[0]);
+        }, 5200);
+
+        // Sound effects
+        function beep(freq = 440, duration = 0.06) {
+            try {
+                const audio = new AudioContext();
+                const oscillator = audio.createOscillator();
+                const gain = audio.createGain();
+
+                oscillator.frequency.value = freq;
+                oscillator.type = "square";
+
+                gain.gain.setValueAtTime(0.035, audio.currentTime);
+                gain.gain.exponentialRampToValueAtTime(
+                    0.001,
+                    audio.currentTime + duration
+                );
+
+                oscillator.connect(gain);
+                gain.connect(audio.destination);
+
+                oscillator.start();
+                oscillator.stop(audio.currentTime + duration);
+
+                oscillator.onended = () => audio.close();
+            } catch (error) {
+                // Sound is optional if the browser blocks audio.
+            }
+        }
+
+        // Toast notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add("show");
+
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2300);
+        }
+
+        // Simulated hacking tools
+        document.querySelectorAll("[data-tool]").forEach(button => {
+            button.addEventListener("click", () => {
+                const tool = button.dataset.tool;
+
+                const outputs = {
+                    scan: [
+                        "scan complete — 14 fictional nodes mapped",
+                        "nodes"
+                    ],
+                    decrypt: [
+                        "payload decrypted — no real data accessed",
+                        "packets"
+                    ],
+                    trace: [
+                        "signal traced — origin: neon sector 7",
+                        "threat"
+                    ],
+                    firewall: [
+                        "firewall tuned — integrity boosted",
+                        "integrity"
+                    ]
+                };
+
+                const [message, key] = outputs[tool];
+
+                log(message, "good");
+                showToast(message);
+                beep(260);
+
+                if (key === "nodes") {
+                    document.getElementById(key).textContent = "14";
+                }
+
+                if (key === "packets") {
+                    document.getElementById(key).textContent = "1.6k";
+                }
+
+                if (key === "threat") {
+                    document.getElementById(key).textContent = "LOW";
+                }
+
+                if (key === "integrity") {
+                    integrity = Math.min(100, integrity + 8);
+
+                    document.getElementById(key).style.width =
+                        integrity + "%";
+
+                    document.getElementById("integrityText").textContent =
+                        integrity + "%";
+                }
+            });
+        });
+
+        // Cipher verification
+        document.getElementById("check").addEventListener("click", () => {
+            const value = document
+                .getElementById("answer")
+                .value
+                .trim()
+                .toLowerCase();
+
+            const accepted =
+                value === "craw the neon" ||
+                value === "code the neon";
+
+            beep(accepted ? 720 : 180, 0.12);
+
+            if (accepted) {
+                log("cipher accepted — welcome, operator", "good");
+                showToast("ACCESS GRANTED // NICE WORK");
+            } else {
+                log(
+                    "cipher rejected — try shifting letters back by three",
+                    "warn"
+                );
+
+                showToast("ACCESS DENIED // TRY AGAIN");
+            }
+        });
+
+        // Verify when Enter is pressed
+        document.getElementById("answer").addEventListener(
+            "keydown",
+            event => {
+                if (
+                    !event.isComposing &&
+                    event.key !== "Process" &&
+                    event.key === "Enter"
+                ) {
+                    document.getElementById("check").click();
+                }
+            }
+        );
+
+        // Live clock
+        function updateClock() {
+            document.getElementById("clock").textContent =
+                new Date().toLocaleTimeString();
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Button click sound
+        document.querySelectorAll("button").forEach(button => {
+            button.addEventListener("click", () => {
+                beep(520, 0.035);
+            });
+        });
+    </script>
+</body>
+</html>
